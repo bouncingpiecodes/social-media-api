@@ -1,1 +1,1 @@
-# social-medis-api
+# social-media-api
