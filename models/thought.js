@@ -1,75 +1,62 @@
-const { Schema, model, Types } = require("mongoose");
-// import moment module to format the timestamp
-const moment = require("moment");
+import mongoose from "mongoose";
+const { Schema, model, Types } = mongoose;
 
-//reaction schema
+const prettyTimestamp = (dateTime) => {
+  const date = dateTime.toDateString();
+  const time = dateTime.toLocaleTimeString();
+  const prettyDateTime = `${date} at ${time}`;
+  return prettyDateTime;
+};
+
 const reactionSchema = new Schema(
   {
     reactionId: {
       type: Schema.Types.ObjectId,
       default: () => new Types.ObjectId(),
     },
-    reactionBody: {
-      type: String,
-      required: true,
-      maxlength: 280,
-    },
-    username: {
-      type: String,
-      required: true,
-    },
+    reactionBody: { type: String, required: true, maxLength: 280 },
+    username: { type: String, required: true },
     createdAt: {
       type: Date,
       default: Date.now,
-      get: (createdAtVal) =>
-        moment(createdAtVal).format("MMM DD, YYYY [at] hh:mm a"),
+      get: (dateTime) => prettyTimestamp(dateTime),
     },
+    updatedAt: { type: Date, get: (dateTime) => prettyTimestamp(dateTime) },
   },
   {
+    timestamps: true,
     toJSON: {
-      virtuals: true,
       getters: true,
     },
     id: false,
   }
 );
 
-// thought schema
 const thoughtSchema = new Schema(
   {
-    thoughtText: {
-      type: String,
-      required: true,
-      minlength: 1,
-      maxlength: 280,
-    },
+    thoughtText: { type: String, required: true, maxLength: 280 },
     createdAt: {
       type: Date,
       default: Date.now,
-      get: (createdAtVal) =>
-        moment(createdAtVal).format("MMM DD, YYYY [at] hh:mm a"),
+      get: (dateTime) => prettyTimestamp(dateTime),
     },
-    username: {
-      type: String,
-      required: true,
-    },
+    username: { type: String, required: true },
     reactions: [reactionSchema],
+    updatedAt: { type: Date, get: (dateTime) => prettyTimestamp(dateTime) },
   },
   {
+    timestamps: true,
     toJSON: {
-      virtuals: true,
       getters: true,
+      virtuals: true,
     },
-    id: false,
   }
 );
 
-// get total count of friends
 thoughtSchema.virtual("reactionCount").get(function () {
   return this.reactions.length;
 });
 
-// create the User model using the UserSchema
-const Thought = model("Thought", thoughtSchema);
-// export the Thought model
-module.exports = Thought;
+const Thought = model("thought", thoughtSchema);
+
+export default Thought;
